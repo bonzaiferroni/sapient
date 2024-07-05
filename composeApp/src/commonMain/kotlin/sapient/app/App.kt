@@ -1,38 +1,56 @@
 package sapient.app
 
-import Greeting
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import moe.tlaster.precompose.PreComposeApp
+import moe.tlaster.precompose.navigation.NavHost
+import moe.tlaster.precompose.navigation.rememberNavigator
+import moe.tlaster.precompose.navigation.transition.NavTransition
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import sapient.composeapp.generated.resources.Res
-import sapient.composeapp.generated.resources.compose_multiplatform
+import org.koin.compose.KoinContext
+import org.koin.core.context.startKoin
+import sapient.app.theme.AppTheme
 
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+    startKoin {
+        modules(myModule)
+    }
+    PreComposeApp {
+        KoinContext {
+            AppTheme(
+            ) {
+                Surface {
+                    val navigator = rememberNavigator()
+                    NavHost(
+                        // Assign the navigator to the NavHost
+                        navigator = navigator,
+                        // Navigation transition for the scenes in this NavHost, this is optional
+                        navTransition = NavTransition(
+                            createTransition = fadeIn() + scaleIn(initialScale = 0.9f),
+                            destroyTransition = fadeOut() + scaleOut(targetScale = 0.9f),
+                            pauseTransition = fadeOut() + scaleOut(targetScale = 1.1f),
+                            resumeTransition = fadeIn() + scaleIn(initialScale = 1.1f),
+                            enterTargetContentZIndex = 0f,
+                            exitTargetContentZIndex = 0f
+                        ),
+                        // The start destination
+                        initialRoute = Scenes.default(),
+                    ) {
+                        appScenes(navigator)
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+@Preview
+fun AppPreview() {
+    App()
 }
