@@ -13,6 +13,9 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import sapient.server.db.applyServiceRouting
+import sapient.server.db.services.MissionService
+import sapient.server.db.services.QuestService
 import java.util.Date
 
 fun Application.configureRoutes() {
@@ -21,9 +24,8 @@ fun Application.configureRoutes() {
             call.respondText("Hello World!")
         }
 
-        // applyServiceRouting(AreaService())
-        // applyServiceRouting(EventService())
-        // applyServiceRouting(UserService())
+        applyServiceRouting(QuestService())
+        applyServiceRouting(MissionService())
 
         post("$v1/login") {
             val audience = "http://localhost:8080/"
