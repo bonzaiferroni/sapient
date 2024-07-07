@@ -1,4 +1,4 @@
-rootProject.name = "Sapient"
+rootProject.name = "sapient"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
