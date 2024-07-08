@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.serialization)
 }
 
 kotlin {
@@ -44,6 +45,8 @@ kotlin {
             // api("moe.tlaster:precompose-molecule:$precompose_version") // For Molecule intergration
             implementation("io.insert-koin:koin-core:3.6.0-alpha3")
             implementation("io.insert-koin:koin-compose:1.2.0-alpha3")
+
+            implementation("org.slf4j:slf4j-simple:1.6.1")
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)

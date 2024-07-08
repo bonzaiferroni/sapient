@@ -13,7 +13,8 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import sapient.server.db.applyServiceRouting
+import sapient.server.db.routes.provideBasicRoutes
+import sapient.server.db.routes.provideCustomRoutes
 import sapient.server.db.services.MissionService
 import sapient.server.db.services.QuestService
 import java.util.Date
@@ -24,8 +25,10 @@ fun Application.configureRoutes() {
             call.respondText("Hello World!")
         }
 
-        applyServiceRouting(QuestService())
-        applyServiceRouting(MissionService())
+        provideBasicRoutes(QuestService())
+        provideBasicRoutes(MissionService())
+
+        provideCustomRoutes(QuestService())
 
         post("$v1/login") {
             val audience = "http://localhost:8080/"
@@ -33,7 +36,7 @@ fun Application.configureRoutes() {
             val secret = "secret"
 
             val json = call.receive<JsonObject>()
-            val name = json["name"]?.jsonPrimitive?.content
+            val name = json["username"]?.jsonPrimitive?.content
             val password = json["password"]?.jsonPrimitive?.content
             if (name != "admin" || password != "admin") {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid user")

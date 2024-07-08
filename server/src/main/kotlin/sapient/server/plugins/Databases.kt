@@ -4,7 +4,10 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import sapient.server.db.services.MissionTable
+import sapient.server.db.services.QuestTable
 
 fun Application.configureDatabases() {
     val database = Database.connect(
@@ -15,9 +18,8 @@ fun Application.configureDatabases() {
     )
 
     transaction(database) {
-        // SchemaUtils.create(UserTable)
-        // SchemaUtils.create(LocationTable)
-        // SchemaUtils.create(AreaTable)
+        SchemaUtils.create(QuestTable)
+        SchemaUtils.create(MissionTable)
     }
 
     environment.monitor.subscribe(ApplicationStarted) {

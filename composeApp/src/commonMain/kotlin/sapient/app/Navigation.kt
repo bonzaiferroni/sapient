@@ -2,15 +2,16 @@ package sapient.app
 
 import moe.tlaster.precompose.navigation.BackStackEntry
 import moe.tlaster.precompose.navigation.path
+import sapient.app.ui.screens.QuestProfileScreen
 
 object Scenes {
     val default = { questList.route }
 
     val questList = AppScene(
-        name = "Quests",
-        route = "/quests"
-    ) { _, navigator ->
-        QuestListScreen(navigator)
+        name = "Quest Profile",
+        route = "/quest/{id}?"
+    ) { bse, navigator ->
+        QuestProfileScreen(bse.getId(), navigator)
     }
 
     /*val debug = AppScene(

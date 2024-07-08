@@ -1,4 +1,4 @@
-package sapient.server.db
+package sapient.server.db.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -11,9 +11,11 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import org.jetbrains.exposed.dao.IntEntity
+import sapient.server.db.services.DataService
+import sapient.server.db.getIdOrThrow
 import sapient.server.plugins.v1
 
-inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRouting(
+inline fun <reified Data : Any, DataEntity : IntEntity> Routing.provideBasicRoutes(
     service: DataService<Data, DataEntity>
 ) {
     get("$v1/${service.endpoint}") {

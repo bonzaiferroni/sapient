@@ -1,4 +1,4 @@
-package sapient.server.db
+package sapient.server.db.services
 
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction

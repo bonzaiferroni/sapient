@@ -5,7 +5,6 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import sapient.model.quest.Mission
-import sapient.server.db.DataService
 
 object MissionTable : IntIdTable() {
     val target = text("target")

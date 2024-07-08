@@ -1,4 +1,4 @@
-package sapient.server.db
+package sapient.server.db.services
 
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity

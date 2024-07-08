@@ -1,4 +1,4 @@
-package sapient.app
+package sapient.app.examples
 
 import Greeting
 import androidx.compose.animation.AnimatedVisibility

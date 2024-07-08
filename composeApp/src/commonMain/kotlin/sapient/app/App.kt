@@ -13,7 +13,7 @@ import moe.tlaster.precompose.navigation.transition.NavTransition
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinContext
 import org.koin.core.context.startKoin
-import sapient.app.theme.AppTheme
+import sapient.app.ui.theme.AppTheme
 
 @Composable
 fun App() {

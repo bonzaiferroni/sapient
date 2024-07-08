@@ -1,4 +1,4 @@
-package sapient.app.theme
+package sapient.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF256A4A)

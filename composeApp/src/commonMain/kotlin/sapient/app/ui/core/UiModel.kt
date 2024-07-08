@@ -1,4 +1,4 @@
-package sapient.app.core
+package sapient.app.ui.core
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
