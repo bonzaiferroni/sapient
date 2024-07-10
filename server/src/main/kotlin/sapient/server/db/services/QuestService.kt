@@ -4,11 +4,16 @@ import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 import sapient.model.quest.Quest
 
-object QuestTable : IntIdTable() {
+object Quests : IntIdTable() {
     val mission = reference("mission_id", MissionTable).nullable()
-    val parent = reference("parent_id", QuestTable).nullable()
+    val parent = reference("parent_id", Quests).nullable()
     val target = text("target")
     val notes = text("notes")
     val completedAt = long("completed_at").nullable()
@@ -16,14 +21,14 @@ object QuestTable : IntIdTable() {
 }
 
 class QuestEntity(id: EntityID<Int>) : IntEntity(id) {
-    companion object : EntityClass<Int, QuestEntity>(QuestTable)
+    companion object : EntityClass<Int, QuestEntity>(Quests)
 
-    var mission by MissionEntity optionalReferencedOn QuestTable.mission
-    var parent by QuestEntity optionalReferencedOn QuestTable.parent
-    var target by QuestTable.target
-    var notes by QuestTable.notes
-    var completedAt by QuestTable.completedAt
-    var duration by QuestTable.duration
+    var mission by MissionEntity optionalReferencedOn Quests.mission
+    var parent by QuestEntity optionalReferencedOn Quests.parent
+    var target by Quests.target
+    var notes by Quests.notes
+    var completedAt by Quests.completedAt
+    var duration by Quests.duration
 }
 
 class QuestService : DataService<Quest, QuestEntity>("quest", QuestEntity) {
@@ -64,6 +69,20 @@ class QuestService : DataService<Quest, QuestEntity>("quest", QuestEntity) {
     )
 
     suspend fun getRoots() = dbQuery {
-        QuestEntity.find { QuestTable.parent.isNull() }.map { it.toData() }
+        QuestEntity.find { Quests.parent.isNull() }.map { it.toData() }
+    }
+
+    suspend fun getChildren(parentId: Int) = dbQuery {
+        QuestEntity.find { Quests.parent eq parentId }.map { it.toData() }
+    }
+
+    suspend fun getAvailable() = dbQuery {
+        // find all quests that are incomplete and do not have children that are incomplete
+        val incompleteChildren = QuestEntity.find {
+            Quests.completedAt.isNull() and Quests.parent.isNotNull()
+        }.map { it.parent!!.id }
+        QuestEntity.find {
+            (Quests.completedAt.isNull()) and (Quests.id notInList incompleteChildren)
+        }.map { it.toData() }
     }
 }

@@ -10,12 +10,23 @@ import sapient.server.db.services.QuestService
 import sapient.server.plugins.v1
 
 fun Routing.provideCustomRoutes(questService: QuestService) {
-    get("/$v1/quest/roots") {
+    get("$v1/quest/roots") {
         val roots = questService.getRoots()
-        if (roots.isEmpty()) {
-            call.respond(HttpStatusCode.OK, emptyList<Quest>())
-        } else {
-            call.respond(HttpStatusCode.OK, roots)
+        call.respond(HttpStatusCode.OK, roots)
+    }
+
+    get("$v1/quest/{id}/children") {
+        val id = call.parameters["id"]?.toIntOrNull()
+        if (id == null) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid id")
+            return@get
         }
+        val children = questService.getChildren(id)
+        call.respond(HttpStatusCode.OK, children)
+    }
+
+    get("$v1/quest/available") {
+        val available = questService.getAvailable()
+        call.respond(HttpStatusCode.OK, available)
     }
 }

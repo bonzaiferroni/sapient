@@ -1,114 +1,141 @@
 package sapient.app.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
-import moe.tlaster.precompose.viewmodel.viewModelScope
 import org.koin.core.parameter.parametersOf
-import sapient.app.io.QuestDao
-import sapient.app.ui.core.UiModel
-import sapient.app.ui.core.UiState
+import sapient.app.Scenes
 import sapient.model.quest.Quest
 import streetlight.app.chopui.BoxScaffold
+import streetlight.app.chopui.Constants.BASE_PADDING
+import streetlight.app.chopui.addBasePadding
 
 @Composable
 fun QuestProfileScreen(
     id: Int?,
     navigator: Navigator?
 ) {
-    val model = koinViewModel(QuestProfileModel::class) { parametersOf(id)}
+    val model = koinViewModel(QuestProfileModel::class) { parametersOf(id) }
     val state by model.state
     BoxScaffold(
         title = "quest",
         navigator = navigator,
         floatingAction = model::startChildTarget
     ) {
-        state.parent?.let {
-            Button(onClick = { navigator?.navigate("quest/${it.id}") }) {
-                Text(it.target)
+        Column(
+            horizontalAlignment = CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(BASE_PADDING),
+            modifier = Modifier
+                .fillMaxSize()
+                .addBasePadding()
+        ) {
+            state.parent?.let {
+                ParentCard(it, state.siblings, navigator)
             }
-        }
-        state.quest?.let {
-            Card {
-                Text(it.target)
+            state.quest?.let {
+                QuestSection(it, model::onToggleComplete)
             }
-        }
-        LazyColumn {
-            items(state.children) { quest ->
-                Button(onClick = { navigator?.navigate("quest/${quest.id}") }) {
-                    Text(quest.target)
+            LazyColumn {
+                items(state.children) { quest ->
+                    Button(onClick = { Scenes.questProfile.go(navigator, quest.id) }) {
+                        Text(quest.target)
+                    }
+                }
+            }
+            state.newTarget?.let {
+                Row {
+                    TextField(it, onValueChange = model::childTargetUpdate)
+                    Button(onClick = model::addChildTarget) {
+                        Text("Add")
+                    }
                 }
             }
         }
-        state.newTarget?.let {
+    }
+}
+
+@Composable
+fun ParentCard(
+    parent: Quest,
+    siblings: List<Quest>,
+    navigator: Navigator?
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = parent.target,
+                modifier = Modifier.padding(start = BASE_PADDING)
+            )
             Row {
-                TextField(it, onValueChange = model::childTargetUpdate )
-                Button(onClick = model::addChildTarget) {
-                    Text("Add")
+                siblings.forEach {
+                    if (it.isCompleted) {
+                        Text("●")
+                    } else {
+                        Text("○")
+                    }
                 }
+            }
+            Button(onClick = { Scenes.questProfile.go(navigator, parent.id) }) {
+                Icon(imageVector = Icons.Default.KeyboardArrowUp, contentDescription = "Up")
             }
         }
     }
 }
 
-class QuestProfileModel(
-    private val id: Int?,
-    private val questDao: QuestDao
-) : UiModel<QuestProfileState>(QuestProfileState()) {
-    init {
-        id?.let {
-            viewModelScope.launch(Dispatchers.IO) {
-                val quest = questDao.get(it)
-                quest?.parentId?.let { parentId ->
-                    val parent = questDao.get(parentId)
-                    sv = sv.copy(parent = parent)
-                }
-                sv = sv.copy(quest = quest)
-            }
+@Composable
+fun QuestSection(
+    quest: Quest,
+    onToggleComplete: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = quest.target,
+                modifier = Modifier.padding(start = BASE_PADDING),
+                style = TextStyle(
+                    fontSize = 24.sp, // Adjust the font size as needed
+                    fontWeight = FontWeight.Bold, // Make the text bold
+                )
+            )
+            Checkbox(checked = quest.isCompleted, onCheckedChange = onToggleComplete)
         }
-        getChildren()
-    }
-
-    private fun getChildren() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val roots = questDao.getRoots()
-            sv = sv.copy(children = roots)
-        }
-    }
-
-    fun childTargetUpdate(value: String) {
-        sv = sv.copy(newTarget = value)
-    }
-
-    fun addChildTarget() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val newTarget = sv.newTarget ?: return@launch
-            val quest = Quest(target = newTarget, parentId = sv.quest?.id)
-            questDao.create(quest)
-            getChildren()
-        }
-    }
-
-    fun startChildTarget() {
-        println("ey")
-        sv = sv.copy(newTarget = "")
     }
 }
-
-data class QuestProfileState(
-    val quest: Quest? = null,
-    val parent: Quest? = null,
-    val children: List<Quest> = emptyList(),
-    val newTarget: String? = null,
-) : UiState
-

@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import sapient.server.db.services.MissionTable
-import sapient.server.db.services.QuestTable
+import sapient.server.db.services.Quests
 
 fun Application.configureDatabases() {
     val database = Database.connect(
@@ -18,7 +18,7 @@ fun Application.configureDatabases() {
     )
 
     transaction(database) {
-        SchemaUtils.create(QuestTable)
+        SchemaUtils.create(Quests)
         SchemaUtils.create(MissionTable)
     }
 

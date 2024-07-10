@@ -11,4 +11,7 @@ data class Quest(
     val notes: String = "",
     val completedAt: Long? = null,
     val duration: Int? = null,
-)
+) {
+    val isCompleted: Boolean
+        get() = completedAt != null
+}
