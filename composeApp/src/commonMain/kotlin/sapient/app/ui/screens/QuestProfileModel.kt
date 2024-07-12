@@ -13,66 +13,72 @@ class QuestProfileModel(
     private val questDao: QuestDao
 ) : UiModel<QuestProfileState>(QuestProfileState()) {
     init {
-        id?.let {
-            viewModelScope.launch(Dispatchers.IO) {
-                val quest = questDao.get(it)
-                val parent = quest?.parentId?.let { parentId ->
-                    questDao.get(parentId)
-                }
-                val siblings = parent?.let { questDao.getChildren(it.id) } ?: emptyList()
-                sv = sv.copy(quest = quest, parent = parent, siblings = siblings)
-            }
-        }
-        getChildren()
+        getQuests()
     }
 
-    private fun getChildren() {
+    private fun getQuests() {
         viewModelScope.launch(Dispatchers.IO) {
-            val children = if (id == null) {
-                questDao.getAvailable()
-            } else {
-                questDao.getChildren(id)
+            val available = questDao.getAvailable()
+            val quest = id?.let { questDao.get(it) }
+            val children = id?.let { questDao.getChildren(it) } ?: emptyList()
+            val parent = quest?.parentId?.let { parentId ->
+                questDao.get(parentId)
             }
-            sv = sv.copy(children = children)
+            val siblings = parent?.let { questDao.getChildren(it.id) } ?: emptyList()
+            sv = sv.copy(
+                available = available,
+                quest = quest,
+                children = children,
+                parent = parent,
+                siblings = siblings,
+                stepProgress = children.count { it.isCompleted }.toFloat() / children.size
+            )
         }
     }
 
-    fun childTargetUpdate(value: String) {
-        sv = sv.copy(newTarget = value)
+    fun updateNewQuest(value: String) {
+        sv = sv.copy(newQuest = value)
     }
 
-    fun addChildTarget() {
+    fun addNewQuest() {
         viewModelScope.launch(Dispatchers.IO) {
-            val newTarget = sv.newTarget ?: return@launch
-            val quest = Quest(target = newTarget, parentId = sv.quest?.id)
+            val newTarget = sv.newQuest ?: return@launch
+            val quest = Quest(target = newTarget, parentId = if (sv.newIsChild) id else null)
             questDao.create(quest)
-            sv = sv.copy(newTarget = null)
-            getChildren()
+            cancelNewQuest()
+            getQuests()
         }
     }
 
-    fun startChildTarget() {
-        sv = sv.copy(newTarget = "")
+    fun startAddChild() {
+        sv = sv.copy(newQuest = "", newIsChild = true)
     }
 
-    fun onToggleComplete(isComplete: Boolean) {
+    fun startAddParentless() {
+        sv = sv.copy(newQuest = "", newIsChild = false)
+    }
+
+    fun cancelNewQuest() {
+        sv = sv.copy(newQuest = null)
+    }
+
+    fun onToggleComplete(quest: Quest, isComplete: Boolean) {
         // update local values
         val value = if (isComplete) System.currentTimeMillis() else null
+        val updatedQuest = quest.copy(completedAt = value)
         sv = sv.copy(
-            siblings = sv.siblings.map {
-                if (it.id == sv.quest?.id) {
-                    it.copy(completedAt = value)
-                } else {
-                    it
-                }
-            },
-            quest = sv.quest?.copy(completedAt = value)
+            siblings = if (sv.siblings.any{ it.id == quest.id }) {
+                sv.siblings.map { if (it.id == quest.id) updatedQuest else it }
+            } else sv.siblings,
+            quest = if (sv.quest?.id == quest.id) updatedQuest else sv.quest,
+            children = if (sv.children.any{ it.id == quest.id }) {
+                sv.children.map { if (it.id == quest.id) updatedQuest else it }
+            } else sv.children
         )
 
         // update remote values
         viewModelScope.launch(Dispatchers.IO) {
-            val quest = sv.quest ?: return@launch
-            questDao.update(quest)
+            questDao.update(updatedQuest)
         }
     }
 }
@@ -82,5 +88,8 @@ data class QuestProfileState(
     val parent: Quest? = null,
     val siblings: List<Quest> = emptyList(),
     val children: List<Quest> = emptyList(),
-    val newTarget: String? = null,
+    val available: List<Quest> = emptyList(),
+    val stepProgress: Float = 0f,
+    val newQuest: String? = null,
+    val newIsChild: Boolean = false,
 ) : UiState
