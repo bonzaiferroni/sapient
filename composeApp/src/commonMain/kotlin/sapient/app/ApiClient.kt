@@ -25,7 +25,8 @@ class ApiClient {
             json(Json { prettyPrint = true })
         }
     }
-    val address = "http://localhost:8080/api/v1"
+    //val address = "http://localhost:8080/api/v1"
+    val address = "https://galaxybrain.fyi/api/v1"
 
     private var token = ""
     private val username = "admin"

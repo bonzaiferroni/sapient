@@ -3,14 +3,13 @@ val ktor_version: String by project
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
-    application
     alias(libs.plugins.serialization)
 }
 
 group = "sapient.server"
 version = "1.0.0"
 application {
-    mainClass.set("sapient.app.ApplicationKt")
+    mainClass.set("sapient.server.ApplicationKt")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=${extra["io.ktor.development"] ?: "false"}")
 }
 
