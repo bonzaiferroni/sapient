@@ -1,7 +1,5 @@
 package sapient.server
 
-import Greeting
-import SERVER_PORT
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -13,7 +11,7 @@ import sapient.server.plugins.configureSecurity
 import sapient.server.plugins.configureSerialization
 
 fun main() {
-    embeddedServer(Netty, port = SERVER_PORT, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 8090, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 

@@ -35,7 +35,6 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(projects.shared)
 
             // Navigator
             val precomposeVersion = "1.6.0"

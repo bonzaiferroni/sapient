@@ -14,7 +14,6 @@ application {
 }
 
 dependencies {
-    implementation(projects.shared)
     implementation(libs.logback)
     implementation(project(":model"))
     testImplementation(libs.ktor.server.tests)
