@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -25,12 +27,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
@@ -96,6 +103,8 @@ fun AddStepDialog(
     onConfirmation: () -> Unit,
     newStepTargetUpdate: (String) -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+
     newStepTarget?.let {
         AlertDialog(
             title = {
@@ -105,8 +114,12 @@ fun AddStepDialog(
                 TextField(
                     value = newStepTarget,
                     onValueChange = newStepTargetUpdate,
-                    label = { Text("Step") }
-                )
+                    label = { Text("Step") },
+                    modifier = Modifier.focusRequester(focusRequester),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { onConfirmation() }),
+                    )
             },
             onDismissRequest = onDismiss,
             confirmButton = {
@@ -124,6 +137,10 @@ fun AddStepDialog(
                 }
             }
         )
+
+        LaunchedEffect(newStepTarget) {
+            focusRequester.requestFocus()
+        }
     }
 }
 
@@ -236,7 +253,9 @@ fun StepRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Checkbox(checked = dto.quest.isCompleted, onCheckedChange = {updateCompleted(dto.quest, it)})
+        Checkbox(
+            checked = dto.quest.isCompleted,
+            onCheckedChange = { updateCompleted(dto.quest, it) })
         Button(onClick = { Scenes.questProfile.go(navigator, dto.quest.id) }) {
             Text(text = dto.quest.target)
         }
