@@ -37,6 +37,7 @@ import moe.tlaster.precompose.navigation.Navigator
 import org.koin.core.parameter.parametersOf
 import sapient.app.Scenes
 import sapient.model.quest.Quest
+import sapient.model.quest.QuestDto
 import streetlight.app.chopui.Constants.BASE_PADDING
 import streetlight.app.chopui.addBasePadding
 
@@ -130,7 +131,7 @@ fun AddStepDialog(
 fun ParentSection(
     quest: Quest,
     parent: Quest,
-    siblings: List<Quest>,
+    siblings: List<QuestDto>,
     navigator: Navigator?
 ) {
     Row(
@@ -153,9 +154,9 @@ fun ParentSection(
         ) {
             siblings.forEach {
                 Text(
-                    text = if (it.isCompleted) "●" else "○",
+                    text = if (it.quest.isCompleted) "●" else "○",
                     style = TextStyle(
-                        color = if (it.id == quest.id)
+                        color = if (it.quest.id == quest.id)
                             MaterialTheme.colorScheme.primary
                         else
                             MaterialTheme.colorScheme.onSurface
@@ -170,7 +171,7 @@ fun ParentSection(
 fun QuestSection(
     navigator: Navigator?,
     quest: Quest,
-    children: List<Quest>,
+    children: List<QuestDto>,
     stepProgress: Float,
     onToggleComplete: (Quest, Boolean) -> Unit,
     startAddChild: () -> Unit,
@@ -186,7 +187,7 @@ fun QuestSection(
                 horizontalArrangement = Arrangement.spacedBy(BASE_PADDING),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (children.all { it.isCompleted }) {
+                if (children.all { it.quest.isCompleted }) {
                     Checkbox(
                         checked = quest.isCompleted,
                         onCheckedChange = { onToggleComplete(quest, it) }
@@ -213,8 +214,8 @@ fun QuestSection(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(BASE_PADDING),
                 ) {
-                    items(children) { quest ->
-                        StepRow(quest = quest, navigator = navigator, onToggleComplete)
+                    items(children) { dto ->
+                        StepRow(dto = dto, navigator = navigator, onToggleComplete)
                     }
                 }
                 IconButton(onClick = startAddChild) {
@@ -227,7 +228,7 @@ fun QuestSection(
 
 @Composable
 fun StepRow(
-    quest: Quest,
+    dto: QuestDto,
     navigator: Navigator?,
     updateCompleted: (Quest, Boolean) -> Unit,
 ) {
@@ -235,9 +236,9 @@ fun StepRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Checkbox(checked = quest.isCompleted, onCheckedChange = {updateCompleted(quest, it)})
-        Button(onClick = { Scenes.questProfile.go(navigator, quest.id) }) {
-            Text(text = quest.target)
+        Checkbox(checked = dto.quest.isCompleted, onCheckedChange = {updateCompleted(dto.quest, it)})
+        Button(onClick = { Scenes.questProfile.go(navigator, dto.quest.id) }) {
+            Text(text = dto.quest.target)
         }
     }
 }
@@ -245,16 +246,16 @@ fun StepRow(
 @Composable
 fun AvailableSection(
     navigator: Navigator?,
-    steps: List<Quest>,
+    steps: List<QuestDto>,
     startAddParentless: () -> Unit
 ) {
     Text("Available")
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(BASE_PADDING),
     ) {
-        items(steps) { quest ->
-            Button(onClick = { Scenes.questProfile.go(navigator, quest.id) }) {
-                Text(quest.target)
+        items(steps) { dto ->
+            Button(onClick = { Scenes.questProfile.go(navigator, dto.quest.id) }) {
+                Text(dto.quest.target)
             }
         }
     }

@@ -7,6 +7,7 @@ import sapient.app.io.QuestDao
 import sapient.app.ui.core.UiModel
 import sapient.app.ui.core.UiState
 import sapient.model.quest.Quest
+import sapient.model.quest.QuestDto
 
 class QuestProfileModel(
     private val id: Int?,
@@ -31,7 +32,7 @@ class QuestProfileModel(
                 children = children,
                 parent = parent,
                 siblings = siblings,
-                stepProgress = children.count { it.isCompleted }.toFloat() / children.size
+                stepProgress = children.count { it.quest.isCompleted }.toFloat() / children.size
             )
         }
     }
@@ -65,20 +66,20 @@ class QuestProfileModel(
     fun onToggleComplete(quest: Quest, isComplete: Boolean) {
         // update local values
         val value = if (isComplete) System.currentTimeMillis() else null
-        val updatedQuest = quest.copy(completedAt = value)
+        val updated = quest.copy(completedAt = value)
         sv = sv.copy(
-            siblings = if (sv.siblings.any{ it.id == quest.id }) {
-                sv.siblings.map { if (it.id == quest.id) updatedQuest else it }
-            } else sv.siblings,
-            quest = if (sv.quest?.id == quest.id) updatedQuest else sv.quest,
-            children = if (sv.children.any{ it.id == quest.id }) {
-                sv.children.map { if (it.id == quest.id) updatedQuest else it }
-            } else sv.children
+            siblings = sv.siblings.map {
+                if (it.quest.id == updated.id) it.copy(quest = updated) else it
+            },
+            quest = if (sv.quest?.id == quest.id) updated else sv.quest,
+            children = sv.children.map {
+                if (it.quest.id == updated.id) it.copy(quest = updated) else it
+            },
         )
 
         // update remote values
         viewModelScope.launch(Dispatchers.IO) {
-            questDao.update(updatedQuest)
+            questDao.update(updated)
         }
     }
 }
@@ -86,9 +87,9 @@ class QuestProfileModel(
 data class QuestProfileState(
     val quest: Quest? = null,
     val parent: Quest? = null,
-    val siblings: List<Quest> = emptyList(),
-    val children: List<Quest> = emptyList(),
-    val available: List<Quest> = emptyList(),
+    val siblings: List<QuestDto> = emptyList(),
+    val children: List<QuestDto> = emptyList(),
+    val available: List<QuestDto> = emptyList(),
     val stepProgress: Float = 0f,
     val newQuest: String? = null,
     val newIsChild: Boolean = false,

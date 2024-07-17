@@ -16,3 +16,9 @@ data class Quest(
     val isCompleted: Boolean
         get() = completedAt != null
 }
+
+@Serializable
+data class QuestDto(
+    val quest: Quest,
+    val progress: Float,
+)
