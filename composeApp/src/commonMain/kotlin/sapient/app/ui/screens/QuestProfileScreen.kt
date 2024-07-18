@@ -3,6 +3,7 @@ package sapient.app.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -38,6 +43,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
@@ -86,6 +92,11 @@ fun QuestProfileScreen(
                 onToggleComplete = model::onToggleComplete,
                 stepProgress = state.stepProgress,
                 startAddChild = model::startAddChild,
+                onToggleEdit = model::toggleEdit,
+                editQuest = state.editQuest,
+                updateTarget = model::updateTarget,
+                onDeleteProfile = model::deleteProfile,
+                onSaveProfile = model::saveProfile
             )
         }
         AvailableSection(
@@ -119,7 +130,7 @@ fun AddStepDialog(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { onConfirmation() }),
-                    )
+                )
             },
             onDismissRequest = onDismiss,
             confirmButton = {
@@ -189,9 +200,14 @@ fun QuestSection(
     navigator: Navigator?,
     quest: Quest,
     children: List<QuestDto>,
+    editQuest: Boolean,
     stepProgress: Float,
     onToggleComplete: (Quest, Boolean) -> Unit,
     startAddChild: () -> Unit,
+    onToggleEdit: () -> Unit,
+    updateTarget: (String) -> Unit,
+    onDeleteProfile: (() -> Unit) -> Unit,
+    onSaveProfile: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -213,16 +229,45 @@ fun QuestSection(
                     CircularProgressIndicator(
                         progress = { stepProgress },
                         color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.background
+                        trackColor = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.padding(4.dp)
                     )
                 }
-                Text(
-                    text = quest.target,
-                    style = TextStyle(
-                        fontSize = 24.sp, // Adjust the font size as needed
-                        fontWeight = FontWeight.Bold, // Make the text bold
+                if (editQuest) {
+                    TextField(
+                        value = quest.target,
+                        onValueChange = updateTarget,
+                        label = { Text("Quest") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { }),
+                        modifier = Modifier.weight(1f)
                     )
-                )
+                } else {
+                    Text(
+                        text = quest.target,
+                        style = TextStyle(
+                            fontSize = 24.sp, // Adjust the font size as needed
+                            fontWeight = FontWeight.Bold, // Make the text bold
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                if (editQuest) {
+                    IconButton(onClick = onToggleEdit) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                    }
+                    IconButton(onClick = { onDeleteProfile { Scenes.questProfile.go(navigator) }}) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
+                    }
+                    IconButton(onClick = onSaveProfile) {
+                        Icon(imageVector = Icons.Default.Done, contentDescription = "Save")
+                    }
+                } else {
+                    IconButton(onClick = onToggleEdit) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                    }
+                }
             }
             Column(
                 modifier = Modifier.fillMaxWidth(),

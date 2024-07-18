@@ -82,6 +82,29 @@ class QuestProfileModel(
             questDao.update(updated)
         }
     }
+
+    fun toggleEdit() {
+        sv = sv.copy(editQuest = !sv.editQuest)
+    }
+
+    fun updateTarget(value: String) {
+        sv = sv.copy(quest = sv.quest?.copy(target = value))
+    }
+
+    fun saveProfile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            sv.quest?.let { questDao.update(it) }
+            sv = sv.copy(editQuest = false)
+            getQuests()
+        }
+    }
+
+    fun deleteProfile(callback: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sv.quest?.let { questDao.delete(it.id) }
+            callback()
+        }
+    }
 }
 
 data class QuestProfileState(
@@ -93,4 +116,5 @@ data class QuestProfileState(
     val stepProgress: Float = 0f,
     val newQuest: String? = null,
     val newIsChild: Boolean = false,
+    val editQuest: Boolean = false
 ) : UiState
