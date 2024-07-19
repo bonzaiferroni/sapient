@@ -92,7 +92,7 @@ class QuestService : DataService<Quest, QuestEntity>("quest", QuestEntity) {
     )
 
     suspend fun getRoots() = dbQuery {
-        QuestEntity.find { Quests.parent.isNull() }.map { it.toDto() }
+        QuestEntity.find { Quests.parent.isNull() and Quests.completedAt.isNull() }.map { it.toDto() }
     }
 
     suspend fun getChildren(parentId: Int) = dbQuery {

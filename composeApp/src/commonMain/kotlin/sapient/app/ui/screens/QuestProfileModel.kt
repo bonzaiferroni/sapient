@@ -20,6 +20,7 @@ class QuestProfileModel(
     private fun getQuests() {
         viewModelScope.launch(Dispatchers.IO) {
             val available = questDao.getAvailable()
+            val roots = questDao.getRoots()
             val quest = id?.let { questDao.get(it) }
             val children = id?.let { questDao.getChildren(it) } ?: emptyList()
             val parent = quest?.parentId?.let { parentId ->
@@ -28,6 +29,7 @@ class QuestProfileModel(
             val siblings = parent?.let { questDao.getChildren(it.id) } ?: emptyList()
             sv = sv.copy(
                 available = available,
+                roots = roots,
                 quest = quest,
                 children = children,
                 parent = parent,
@@ -113,6 +115,7 @@ data class QuestProfileState(
     val siblings: List<QuestDto> = emptyList(),
     val children: List<QuestDto> = emptyList(),
     val available: List<QuestDto> = emptyList(),
+    val roots: List<QuestDto> = emptyList(),
     val stepProgress: Float = 0f,
     val newQuest: String? = null,
     val newIsChild: Boolean = false,

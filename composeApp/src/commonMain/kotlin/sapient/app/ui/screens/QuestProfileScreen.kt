@@ -51,6 +51,7 @@ import org.koin.core.parameter.parametersOf
 import sapient.app.Scenes
 import sapient.model.quest.Quest
 import sapient.model.quest.QuestDto
+import streetlight.app.chopui.ChopScaffold
 import streetlight.app.chopui.Constants.BASE_PADDING
 import streetlight.app.chopui.addBasePadding
 
@@ -69,41 +70,48 @@ fun QuestProfileScreen(
         newStepTargetUpdate = model::updateNewQuest
     )
 
-    Column(
-        horizontalAlignment = CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(BASE_PADDING),
-        modifier = Modifier
-            .fillMaxSize()
-            .addBasePadding()
+    ChopScaffold(
+        title = "Quest Profile",
+        navigator = navigator,
+        routes = listOf(Scenes.questProfile.route),
     ) {
-        state.parent?.let {
-            ParentSection(
-                quest = state.quest!!,
-                parent = it,
-                siblings = state.siblings,
-                navigator = navigator
-            )
-        }
-        state.quest?.let {
-            QuestSection(
+        Column(
+            horizontalAlignment = CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(BASE_PADDING),
+            modifier = Modifier
+                .fillMaxSize()
+                .addBasePadding()
+        ) {
+            state.parent?.let {
+                ParentSection(
+                    quest = state.quest!!,
+                    parent = it,
+                    siblings = state.siblings,
+                    navigator = navigator
+                )
+            }
+            state.quest?.let {
+                QuestSection(
+                    navigator = navigator,
+                    quest = it,
+                    children = state.children,
+                    onToggleComplete = model::onToggleComplete,
+                    stepProgress = state.stepProgress,
+                    startAddChild = model::startAddChild,
+                    onToggleEdit = model::toggleEdit,
+                    editQuest = state.editQuest,
+                    updateTarget = model::updateTarget,
+                    onDeleteProfile = model::deleteProfile,
+                    onSaveProfile = model::saveProfile
+                )
+            }
+            AvailableSection(
                 navigator = navigator,
-                quest = it,
-                children = state.children,
-                onToggleComplete = model::onToggleComplete,
-                stepProgress = state.stepProgress,
-                startAddChild = model::startAddChild,
-                onToggleEdit = model::toggleEdit,
-                editQuest = state.editQuest,
-                updateTarget = model::updateTarget,
-                onDeleteProfile = model::deleteProfile,
-                onSaveProfile = model::saveProfile
+                available = state.available,
+                roots = state.roots,
+                startAddParentless = model::startAddParentless,
             )
         }
-        AvailableSection(
-            navigator = navigator,
-            steps = state.available,
-            startAddParentless = model::startAddParentless
-        )
     }
 }
 
@@ -310,14 +318,15 @@ fun StepRow(
 @Composable
 fun AvailableSection(
     navigator: Navigator?,
-    steps: List<QuestDto>,
+    available: List<QuestDto>,
+    roots: List<QuestDto>,
     startAddParentless: () -> Unit
 ) {
     Text("Available")
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(BASE_PADDING),
     ) {
-        items(steps) { dto ->
+        items(available) { dto ->
             Button(onClick = { Scenes.questProfile.go(navigator, dto.quest.id) }) {
                 Text(dto.quest.target)
             }
@@ -325,5 +334,15 @@ fun AvailableSection(
     }
     IconButton(onClick = startAddParentless) {
         Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+    }
+    Text("Roots")
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(BASE_PADDING),
+    ) {
+        items(roots) {
+            Button(onClick = { Scenes.questProfile.go(navigator, it.quest.id) }) {
+                Text(it.quest.target)
+            }
+        }
     }
 }
