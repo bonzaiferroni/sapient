@@ -1,6 +1,7 @@
 package sapient.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -82,18 +84,20 @@ fun QuestProfileScreen(
                 .fillMaxSize()
                 .addBasePadding()
         ) {
-            state.parent?.let {
-                ParentSection(
-                    quest = state.quest!!,
-                    parent = it,
-                    siblings = state.siblings,
-                    navigator = navigator
-                )
-            }
             state.quest?.let {
+                ParentSection(
+                    quest = it,
+                    movingQuest = state.movingQuest,
+                    parent = state.parent,
+                    siblings = state.siblings,
+                    navigator = navigator,
+                    startMove = model::startMove,
+                    cancelMove = model::cancelMove,
+                )
                 QuestSection(
                     navigator = navigator,
                     quest = it,
+                    movingQuest = state.movingQuest,
                     children = state.children,
                     onToggleComplete = model::onToggleComplete,
                     stepProgress = state.stepProgress,
@@ -102,7 +106,8 @@ fun QuestProfileScreen(
                     editQuest = state.editQuest,
                     updateTarget = model::updateTarget,
                     onDeleteProfile = model::deleteProfile,
-                    onSaveProfile = model::saveProfile
+                    onSaveProfile = model::saveProfile,
+                    moveQuest = model::moveQuest
                 )
             }
             AvailableSection(
@@ -166,23 +171,42 @@ fun AddStepDialog(
 @Composable
 fun ParentSection(
     quest: Quest,
-    parent: Quest,
+    movingQuest: Quest?,
+    parent: Quest?,
     siblings: List<QuestDto>,
-    navigator: Navigator?
+    navigator: Navigator?,
+    startMove: () -> Unit,
+    cancelMove: () -> Unit
 ) {
-    Row(
+    Box(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
     ) {
-        OutlinedButton(
-            onClick = { Scenes.questProfile.go(navigator, parent.id) }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = parent.target)
-                Icon(imageVector = Icons.Default.KeyboardArrowUp, contentDescription = "Up")
+            parent?.let {
+                OutlinedButton(
+                    onClick = { Scenes.questProfile.go(navigator, parent.id) }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = parent.target)
+                        Icon(imageVector = Icons.Default.KeyboardArrowUp, contentDescription = "Up")
+                    }
+                }
+            }
+            movingQuest?.let {
+                IconButton(onClick = cancelMove) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
+                }
+            } ?: run {
+                IconButton(onClick = startMove) {
+                    Icon(imageVector = Icons.Default.Place, contentDescription = "Move")
+                }
             }
         }
         Row(
@@ -192,7 +216,7 @@ fun ParentSection(
                 Text(
                     text = if (it.quest.isCompleted) "●" else "○",
                     style = TextStyle(
-                        color = if (it.quest.id == quest.id)
+                        color = if (it.quest.id == quest?.id)
                             MaterialTheme.colorScheme.primary
                         else
                             MaterialTheme.colorScheme.onSurface
@@ -201,12 +225,14 @@ fun ParentSection(
             }
         }
     }
+
 }
 
 @Composable
 fun QuestSection(
     navigator: Navigator?,
     quest: Quest,
+    movingQuest: Quest?,
     children: List<QuestDto>,
     editQuest: Boolean,
     stepProgress: Float,
@@ -215,7 +241,8 @@ fun QuestSection(
     onToggleEdit: () -> Unit,
     updateTarget: (String) -> Unit,
     onDeleteProfile: (() -> Unit) -> Unit,
-    onSaveProfile: () -> Unit
+    onSaveProfile: () -> Unit,
+    moveQuest: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -288,8 +315,15 @@ fun QuestSection(
                         StepRow(dto = dto, navigator = navigator, onToggleComplete)
                     }
                 }
-                IconButton(onClick = startAddChild) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+                Row {
+                    IconButton(onClick = startAddChild) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+                    }
+                    if (movingQuest != null && movingQuest.id != quest.id) {
+                        IconButton(onClick = moveQuest) {
+                            Icon(imageVector = Icons.Default.Place, contentDescription = "Move")
+                        }
+                    }
                 }
             }
         }

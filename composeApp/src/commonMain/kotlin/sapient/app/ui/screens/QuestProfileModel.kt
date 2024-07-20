@@ -11,9 +11,11 @@ import sapient.model.quest.QuestDto
 
 class QuestProfileModel(
     private val id: Int?,
-    private val questDao: QuestDao
+    private val questDao: QuestDao,
+    private val questMover: QuestMover,
 ) : UiModel<QuestProfileState>(QuestProfileState()) {
     init {
+        sv = sv.copy(movingQuest = questMover.quest)
         getQuests()
     }
 
@@ -107,6 +109,27 @@ class QuestProfileModel(
             callback()
         }
     }
+
+    fun startMove() {
+        questMover.quest = sv.quest
+        sv = sv.copy(movingQuest = sv.quest)
+    }
+
+    fun cancelMove() {
+        questMover.quest = null
+        sv = sv.copy(movingQuest = null)
+    }
+
+    fun moveQuest() {
+        viewModelScope.launch(Dispatchers.IO) {
+            questMover.quest?.let { quest ->
+                questDao.update(quest.copy(parentId = sv.quest!!.id))
+            }
+            questMover.quest = null
+            sv = sv.copy(movingQuest = null)
+            getQuests()
+        }
+    }
 }
 
 data class QuestProfileState(
@@ -119,5 +142,10 @@ data class QuestProfileState(
     val stepProgress: Float = 0f,
     val newQuest: String? = null,
     val newIsChild: Boolean = false,
-    val editQuest: Boolean = false
+    val editQuest: Boolean = false,
+    val movingQuest: Quest? = null,
 ) : UiState
+
+class QuestMover(
+    var quest: Quest? = null,
+)
