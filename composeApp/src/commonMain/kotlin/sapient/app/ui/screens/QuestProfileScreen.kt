@@ -199,6 +199,7 @@ fun ParentSection(
                     }
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
             movingQuest?.let {
                 IconButton(onClick = cancelMove) {
                     Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
