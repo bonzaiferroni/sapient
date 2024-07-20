@@ -108,4 +108,12 @@ class QuestService : DataService<Quest, QuestEntity>("quest", QuestEntity) {
             (Quests.completedAt.isNull()) and (Quests.id notInList incompleteChildren)
         }.map { it.toDto() }
     }
+
+    suspend fun getCompleted(start: Long?, end: Long?) = dbQuery {
+        val s = start ?: Long.MAX_VALUE
+        val e = end ?: Long.MIN_VALUE
+        QuestEntity.find {
+            Quests.completedAt greaterEq s and (Quests.completedAt lessEq e)
+        }.map { it.toData() }
+    }
 }

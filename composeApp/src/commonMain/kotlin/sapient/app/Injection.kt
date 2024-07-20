@@ -2,6 +2,7 @@ package sapient.app
 
 import org.koin.dsl.module
 import sapient.app.io.QuestDao
+import sapient.app.ui.screens.QuestHistoryModel
 import sapient.app.ui.screens.QuestProfileModel
 
 val myModule = module {
@@ -12,4 +13,5 @@ val myModule = module {
     // models
     // factory { LocationListModel(get(), get(), get()) }
     factory { (id: Int?) -> QuestProfileModel(id, get()) }
+    factory { QuestHistoryModel(get()) }
 }

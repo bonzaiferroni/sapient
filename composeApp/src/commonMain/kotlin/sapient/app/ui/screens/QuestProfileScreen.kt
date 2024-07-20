@@ -49,6 +49,7 @@ import moe.tlaster.precompose.koin.koinViewModel
 import moe.tlaster.precompose.navigation.Navigator
 import org.koin.core.parameter.parametersOf
 import sapient.app.Scenes
+import sapient.app.ui.AppScaffold
 import sapient.model.quest.Quest
 import sapient.model.quest.QuestDto
 import streetlight.app.chopui.ChopScaffold
@@ -70,10 +71,9 @@ fun QuestProfileScreen(
         newStepTargetUpdate = model::updateNewQuest
     )
 
-    ChopScaffold(
+    AppScaffold(
         title = "Quest Profile",
         navigator = navigator,
-        routes = listOf(Scenes.questProfile.route),
     ) {
         Column(
             horizontalAlignment = CenterHorizontally,

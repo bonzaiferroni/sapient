@@ -15,4 +15,6 @@ class QuestDao(
     suspend fun getRoots(): List<QuestDto> = client.getBody("/quest/roots")
     suspend fun getChildren(id: Int): List<QuestDto> = client.getBody("/quest/$id/children")
     suspend fun getAvailable(): List<QuestDto> = client.getBody("/quest/available")
+    suspend fun getCompleted(start: Long = Long.MIN_VALUE, end: Long = Long.MIN_VALUE): List<Quest> =
+        client.getBody("/quest/completed?start=$start&end=$end")
 }

@@ -29,4 +29,11 @@ fun Routing.provideCustomRoutes(questService: QuestService) {
         val available = questService.getAvailable()
         call.respond(HttpStatusCode.OK, available)
     }
+
+    get("$v1/quest/completed") {
+        val start = call.parameters["start"]?.toLongOrNull()
+        val end = call.parameters["end"]?.toLongOrNull()
+        val completed = questService.getCompleted(start, end)
+        call.respond(HttpStatusCode.OK, completed)
+    }
 }
