@@ -367,10 +367,14 @@ fun AvailableSection(
             }
         }
     }
-    IconButton(onClick = startAddParentless) {
-        Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Roots")
+        IconButton(onClick = startAddParentless) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+        }
     }
-    Text("Roots")
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(BASE_PADDING),
     ) {
