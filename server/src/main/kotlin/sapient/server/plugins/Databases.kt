@@ -7,7 +7,9 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import sapient.server.db.services.MissionTable
+import sapient.server.db.services.QuestService
 import sapient.server.db.services.Quests
+import sapient.server.utilities.DbBackup
 
 fun Application.configureDatabases() {
     val database = Database.connect(
@@ -25,14 +27,14 @@ fun Application.configureDatabases() {
     environment.monitor.subscribe(ApplicationStarted) {
         launch {
             // make json backup
-//            val userCount = UserService().readAll().size
-//            if (userCount == 0) {
-//                println("backup restored")
-//                DbBackup.restore()
-//            } else {
-//                println("backup created")
-//                DbBackup.create()
-//            }
+            val count = QuestService().readAll().size
+            if (count == 0) {
+                println("backup restored")
+                DbBackup.restore()
+            } else {
+                println("backup created")
+                DbBackup.create()
+            }
         }
     }
 }
